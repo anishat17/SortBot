@@ -1,0 +1,1 @@
+# Handle all camera input and processing here then pass to main.py
