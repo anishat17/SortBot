@@ -16,3 +16,4 @@ while (1):
     i += 1
     print(i)
     CameraInput.printTowelAlternating(i)
+    time.sleep(1)
