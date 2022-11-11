@@ -28,3 +28,8 @@ def printTowelAlternating(i):
     #   (Window MUST be selected first)
     cv2.waitKey(0)
     print("Start Window closed")
+
+
+
+#-----------------------------------------------------------------------
+
