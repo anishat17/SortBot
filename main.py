@@ -1,7 +1,19 @@
 # Main loop here
 
 import CameraInput
+import RobotFunctions
+import RobotAPI
+
+import time
+
 
 print("Running main.py")
 
-CameraInput.testprint();
+CameraInput.testprint()
+
+i = 0
+while (1):
+    i += 1
+    print(i)
+    CameraInput.printTowelAlternating(i)
+    time.sleep(1)
