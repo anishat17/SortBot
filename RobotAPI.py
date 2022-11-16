@@ -1,7 +1,16 @@
 # Use this file to communicate with the RaspberryPi and Arduino
-from gpiozero import LED, Button
+import RPi.GPIO as GPIO
 from time import sleep
 from signal import pause
 
-def pingLED17():
+def turnLeft( degrees ):
+    return None
+
+def lowerCrane():
+    return None
+
+def turnOnMagnet():
+    return None
+
+def returnCraneToCenter():
     return None
