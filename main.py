@@ -15,5 +15,6 @@ i = 0
 while (1):
     i += 1
     print(i)
-    CameraInput.printTowelAlternating(i)
+    # Alternate BlinkTest input between TRUE/FALSE
+    RobotAPI.lightBlinkTest( i%2 == 0 )
     time.sleep(1)
