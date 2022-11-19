@@ -6,7 +6,7 @@ from signal import pause
 blinkerPin = 18
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(blinkerPin, GPIO.out)
+GPIO.setup(blinkerPin, GPIO.OUT)
 
 # Set pin to ON or OFF depdning on newState=bool
 def lightBlinkTest(newState):
