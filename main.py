@@ -14,7 +14,7 @@ CameraInput.testprint()
 centerOfScreenXCoord = 250
 for i in CameraInput.trackObject():
     print(i, end='')
-    if (i[0] >= 700):
+    if (i[0] >= centerOfScreenXCoord):
         print("Camera looking too far left! Must turn towards right...")
     else:
         print("Camera looking too far right! Must turn towards left...")
