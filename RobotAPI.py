@@ -9,6 +9,8 @@ indicateRightLED = 17
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(blinkerPin, GPIO.OUT)
+GPIO.setup(indicateLeftLED, GPIO.OUT)
+GPIO.setup(indicateRightLED, GPIO.OUT)
 
 # Set pin to ON or OFF depdning on newState=bool
 def lightBlinkTest(newState):
