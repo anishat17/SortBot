@@ -62,3 +62,18 @@ def trackObject():
             break
     imcap.release()
     cv2.destroyWindow('face_detect')
+    
+    
+    #script 
+#from picamera import PiCamera
+
+#camera = PiCamera()
+#camera.resolution = (1280,720)
+#camera.vflip = True
+#camera.contrast = 50
+
+#time.sleep(2)
+
+
+#camera.capture("/home/pi/Pictures/img.jpg")
+#print("Done.")
