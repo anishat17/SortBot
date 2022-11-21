@@ -16,8 +16,10 @@ for i in CameraInput.trackObject():
     print(i, end='')
     if (i[0] >= centerOfScreenXCoord):
         print("Camera looking too far left! Must turn towards right...")
+        RobotAPI.indicateLeftLED()
     else:
         print("Camera looking too far right! Must turn towards left...")
+        RobotAPI.indicateRightLED()
 
 
 import cv2
