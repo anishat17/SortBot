@@ -11,6 +11,7 @@ print("Running main.py")
 
 CameraInput.testprint()
 
+centerOfScreenXCoord = 250
 for i in CameraInput.trackObject():
     print(i, end='')
     if (i[0] >= 700):
