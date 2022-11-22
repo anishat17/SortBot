@@ -11,10 +11,10 @@ print("Running main.py")
 
 CameraInput.testprint()
 
-centerOfScreenXCoord = 250
+centerX, centerY = CameraInput.getCameraCenterCoordinate()
 for i in CameraInput.trackObject():
-    print(i, end='')
-    if (i[0] >= centerOfScreenXCoord):
+    print(i, ";", centerX, end=' ')
+    if (i[0] >= centerX):
         print("Camera looking too far left! Must turn towards right...")
         RobotAPI.indicateTurnLeft()
     else:

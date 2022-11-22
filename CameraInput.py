@@ -54,7 +54,7 @@ def trackObject():
         # drawing bounding box around face
         for (x, y, w, h) in faces:
             img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255,   0), 3)
-            yield (x + w/2),(y + h/2)
+            yield (x + w/2),(y + h/2) # Yield coordinate of center of box
         # displaying image with bounding box
         cv2.imshow('face_detect', img)
         # loop will be broken when 'q' is pressed on the keyboard
@@ -63,9 +63,16 @@ def trackObject():
     imcap.release()
     cv2.destroyWindow('face_detect')
     
-    
 
-    #script 
+# Returns (x,y) coordinate that is CENTER of current videoCapture device
+def getCameraCenterCoordinate():
+    imcap = cv2.VideoCapture(0)
+    x = imcap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    y = imcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    imcap.release()
+    return x/2,y/2
+
+#script 
 #from picamera import PiCamera
 
 #camera = PiCamera()
