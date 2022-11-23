@@ -72,21 +72,19 @@ def getCameraCenterCoordinate():
     imcap.release()
     return x/2,y/2
 
-#script 
-#from picamera import PiCamera
+#script. Test if picamera is functional or not idk what this is for
+# Instantiates pi's camera, takes a picture, and saves to below directory 
+def savePiPhoto():
+    from picamera import PiCamera
+    import time
 
-#camera = PiCamera()
-#camera.resolution = (1280,720)
-#camera.vflip = True
-#camera.contrast = 50
+    camera = PiCamera()
+    camera.resolution = (1280,720)
+    camera.vflip = True
+    camera.contrast = 50
 
-#time.sleep(2)
+    time.sleep(2)
 
-
-#camera.capture("/home/pi/Pictures/img.jpg")
-#print("Done.")
-
-
-
-#-----------------------------------------------------------------------
+    camera.capture("/home/pi/Pictures/img.jpg")
+    print("Done.")
 
