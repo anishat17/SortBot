@@ -1,11 +1,10 @@
 # Main loop here
 
-import CameraInput
-import RobotFunctions
-import RobotAPI
-
 import time
 
+import CameraInput
+#import RobotAPI
+import RobotFunctions
 
 print("Running main.py")
 
@@ -16,10 +15,10 @@ for i in CameraInput.trackObject():
     print(i, ";", centerX, end=' ')
     if (i[0] >= centerX):
         print("Camera looking too far left! Must turn towards right...")
-        RobotAPI.indicateTurnLeft()
+        #RobotAPI.indicateTurnLeft()
     else:
         print("Camera looking too far right! Must turn towards left...")
-        RobotAPI.indicateTurnRight()
+        #RobotAPI.indicateTurnRight()
 
 
 import cv2
