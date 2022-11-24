@@ -106,15 +106,19 @@ def trackShapes():
     while True:
         success, img = imcap.read() # capture frame from video
         # converting image from color to grayscale, blur, and threshold
-        imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
-        thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+        blurred = cv2.GaussianBlur(img, (5, 5), 0)
+        imgGray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+        lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
+        thresh = cv2.threshold(imgGray, 60, 255, cv2.THRESH_BINARY)[1]
+
 
         # Find contours in thresholded image and init ShapeDetector
         contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE)
         contours = imutils.grab_contours(contours)
+
         sd = ShapeDetector.ShapeDetector()
+        cl = ShapeDetector.ColorLabeler()
 
 
         # drawing bounding box around face
@@ -130,13 +134,15 @@ def trackShapes():
                 cX = 0
                 cY = 0
             shape = sd.detect(c)
+            color = cl.label(lab, c)
 
             # multiply the contour (x, y)-coordinates by the resize ratio,
             # then draw the contours and the name of the shape on the image
             c = c.astype("float")
             c = c.astype("int")
             cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
-            cv2.putText(img, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+            text = "{} {}".format(color, shape)
+            cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (255, 255, 255), 2)
 
             yield (cX),(cY) # Yield coordinate of center of box
