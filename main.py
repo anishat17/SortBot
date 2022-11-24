@@ -11,7 +11,7 @@ print("Running main.py")
 CameraInput.testprint()
 
 centerX, centerY = CameraInput.getCameraCenterCoordinate()
-for i in CameraInput.trackObject():
+for i in CameraInput.trackFace():
     print(i, ";", centerX, end=' ')
     if (i[0] >= centerX):
         print("Camera looking too far left! Must turn towards right...")

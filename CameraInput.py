@@ -1,6 +1,8 @@
 # Handle all camera input and processing here then pass to main.py
 
 import cv2
+import imutils
+import ShapeDetector
 
 def testprint():
     print("Calling testprint() from CameraInput.py")
@@ -32,7 +34,7 @@ def printTowelAlternating(i):
 
 #run a FOREVER loop. shows camera feed and draws bounding box around
 # object of interest, and also YIELDS the x,y of the box to caller func
-def trackObject():
+def trackFace():
     imcap = cv2.VideoCapture(0)
 
     imcap.set(3, 640) # Set field 3 (width) to 640
@@ -88,3 +90,79 @@ def savePiPhoto():
     camera.capture("/home/pi/Pictures/img.jpg")
     print("Done.")
 
+
+#run a FOREVER loop. shows camera feed and draws contours around
+# shapes, and also YIELDS the x,y of the contour to caller func
+def trackShapes():
+    imcap = cv2.VideoCapture(0)
+
+    imcap.set(3, 640) # Set field 3 (width) to 640
+    imcap.set(4, 480) # Set field 4 (Height) 480
+
+    # import cascade (OpenCV pre-trained HAAR classifier)
+    faceCascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+    while True:
+        success, img = imcap.read() # capture frame from video
+        # converting image from color to grayscale, blur, and threshold
+        imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
+        thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+
+        # Find contours in thresholded image and init ShapeDetector
+        contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
+        sd = ShapeDetector.ShapeDetector()
+
+
+        # drawing bounding box around face
+        for c in contours:
+            # compute the center of the contour, then detect the name of the
+            # shape using only the contour
+            M = cv2.moments(c)
+            if ( M["m00"] != 0 ):
+                cX = int((M["m10"] / M["m00"]))
+                cY = int((M["m01"] / M["m00"]))
+            else:
+                # For some reason M["m00"] can be 0 which causes Div-0 error
+                cX = 0
+                cY = 0
+            shape = sd.detect(c)
+
+            # multiply the contour (x, y)-coordinates by the resize ratio,
+            # then draw the contours and the name of the shape on the image
+            c = c.astype("float")
+            c = c.astype("int")
+            cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
+            cv2.putText(img, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (255, 255, 255), 2)
+
+            yield (cX),(cY) # Yield coordinate of center of box
+        # displaying image with bounding box
+        cv2.imshow('shape_detect', img)
+        # loop will be broken when 'q' is pressed on the keyboard
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
+    imcap.release()
+    cv2.destroyWindow('face_detect')
+
+
+if __name__ == "__main__":
+    import time
+    import RobotFunctions
+
+    print("Running CameraInput.py")
+
+    testprint()
+
+    centerX, centerY = getCameraCenterCoordinate()
+    for i in trackShapes():
+        print(i, ";", centerX, end=' ')
+        if (i[0] >= centerX):
+            print("Camera looking too far left! Must turn towards right...")
+            #RobotAPI.indicateTurnLeft()
+        else:
+            print("Camera looking too far right! Must turn towards left...")
+            #RobotAPI.indicateTurnRight()
