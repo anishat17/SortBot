@@ -109,7 +109,7 @@ def trackShapes():
         blurred = cv2.GaussianBlur(resized, (5, 5), 0)
         imgGray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
         lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
-        thresh = cv2.threshold(imgGray, 60, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(imgGray, 120, 255, cv2.THRESH_BINARY)[1]
 
         # Find contours in thresholded image and init ShapeDetector
         contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -138,6 +138,7 @@ def trackShapes():
             # multiply the contour (x, y)-coordinates by the resize ratio,
             # then draw the contours and the name of the shape on the image
             c = c.astype("float")
+            c *= ratio
             c = c.astype("int")
             cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
             text = "{} {}".format(color, shape)
