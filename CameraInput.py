@@ -94,19 +94,19 @@ def savePiPhoto():
 #run a FOREVER loop. shows camera feed and draws contours around
 # shapes, and also YIELDS the x,y of the contour to caller func
 def trackShapes():
+	# load the camera and resize it to a smaller factor so that
+	# the shapes can be approximated better
     imcap = cv2.VideoCapture(0)
 
     imcap.set(3, 640) # Set field 3 (width) to 640
     imcap.set(4, 480) # Set field 4 (Height) 480
-
-    # import cascade (OpenCV pre-trained HAAR classifier)
-    faceCascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-
+    
     while True:
         success, img = imcap.read() # capture frame from video
+        resized = imutils.resize(img, width=300)
+        ratio = img.shape[0] / float(resized.shape[0])
         # converting image from color to grayscale, blur, and threshold
-        imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        imgGray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(imgGray, (5, 5), 0)
         thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 
@@ -123,8 +123,8 @@ def trackShapes():
             # shape using only the contour
             M = cv2.moments(c)
             if ( M["m00"] != 0 ):
-                cX = int((M["m10"] / M["m00"]))
-                cY = int((M["m01"] / M["m00"]))
+                cX = int((M["m10"] / M["m00"]) * ratio)
+                cY = int((M["m01"] / M["m00"]) * ratio)
             else:
                 # For some reason M["m00"] can be 0 which causes Div-0 error
                 cX = 0
@@ -158,11 +158,13 @@ if __name__ == "__main__":
     testprint()
 
     centerX, centerY = getCameraCenterCoordinate()
+    frameCounter = 0
     for i in trackShapes():
-        print(i, ";", centerX, end=' ')
+        print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX):
             print("Camera looking too far left! Must turn towards right...")
             #RobotAPI.indicateTurnLeft()
         else:
             print("Camera looking too far right! Must turn towards left...")
             #RobotAPI.indicateTurnRight()
+        frameCounter += 1
