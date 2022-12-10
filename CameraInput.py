@@ -157,93 +157,6 @@ def trackShapes():
     cv2.destroyWindow('face_detect')
 
 
-#run a FOREVER loop. shows camera feed and draws contours around
-# specified shape of specified color, 
-# and also YIELDS the x,y of the contour to caller func.
-#Will ONLY report ONE object's coords - the closest one to center
-def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
-	# load the camera and resize it to a smaller factor so that
-	# the shapes can be approximated better
-    imcap = cv2.VideoCapture(0)
-    imcap.set(3, 640) # Set field 3 (width) to 640
-    imcap.set(4, 480) # Set field 4 (Height) 480
-    
-    while True:
-        success, img = imcap.read() # capture frame from video
-        resized = imutils.resize(img, width=300)
-        ratio = img.shape[0] / float(resized.shape[0])
-        # converting image from color to grayscale, blur, and threshold
-        blurred = cv2.GaussianBlur(resized, (5, 5), 0)
-        imgGray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-        lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
-        thresh = cv2.threshold(imgGray, 120, 255, cv2.THRESH_BINARY)[1]
-
-        # Find contours in thresholded image and init ShapeDetector
-        contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
-        contours = imutils.grab_contours(contours)
-
-        sd = ShapeDetector.ShapeDetector()
-        cl = ShapeDetector.ColorLabeler()
-
-
-        centermostContour = None
-        cX = imcap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        cY = imcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        # Assign centermostContour to be the contour closest to X,Y center
-        #  We will only be using ONE contour in contours
-        for c in contours:
-            shape = sd.detect(c)
-            color = cl.label(lab, c)
-            if ( not ( (shape==targetShape or targetShape=="any")
-                and (color==targetColor or targetColor=="any") ) ):
-                continue #SKIP this contour if not our target
-
-            M = cv2.moments(c)
-            if ( M["m00"] != 0 ):
-                currCX = int((M["m10"] / M["m00"]) * ratio)
-                currCY = int((M["m01"] / M["m00"]) * ratio)
-            else:
-                # For some reason M["m00"] can be 0 which causes Div-0 error
-                #  hardcode cX and cY to videoCapture width/height to avoid
-                #  error and make this contour lowest priority for tracking
-                currCX = imcap.get(cv2.CAP_PROP_FRAME_WIDTH)
-                currCY = imcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-            
-            # Assign centermostContour to the contour closest to X,Y center
-            # Pythagorean distance
-            centermostContourDist = (cX ** 2 +
-                cY ** 2) ** 0.5
-            currentContourDist = (currCX ** 2 + currCY ** 2) ** 0.5
-            if (currentContourDist < centermostContourDist):
-                centermostContour = c
-                cX = currCX
-                cY = currCY
-        # Skip to next loop iteration if no contour found
-        if (centermostContour is None):
-            continue
-
-        # multiply the contour (x, y)-coordinates by the resize ratio,
-        # then draw the contours and the name of the shape on the image
-        centermostContour = centermostContour.astype("float")
-        centermostContour *= ratio
-        centermostContour = centermostContour.astype("int")
-        cv2.drawContours(img, [centermostContour], -1, (0, 255, 0), 2)
-        text = "{} {}".format(color, shape)
-        cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-            0.5, (255, 255, 255), 2)
-
-        yield (cX),(cY) # Yield coordinate of center of box
-
-        # displaying image with bounding box
-        cv2.imshow('shape_detect', img)
-        # loop will be broken when 'q' is pressed on the keyboard
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-    imcap.release()
-    cv2.destroyWindow('face_detect')
-
-
 if __name__ == "__main__":
     import time
     import RobotFunctions
@@ -254,7 +167,7 @@ if __name__ == "__main__":
 
     centerX, centerY = getCameraCenterCoordinate()
     frameCounter = 0
-    for i in trackTargetShapeAndColor():
+    for i in trackShapes():
         print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX):
             print("Camera looking too far left! Must turn towards right...")
