@@ -88,3 +88,4 @@ def savePiPhoto():
     camera.capture("/home/pi/Pictures/img.jpg")
     print("Done.")
 
+
