@@ -18,3 +18,8 @@ pip install numpy
 apt list python*opencv*
 sudo apt install python3-opencv 
 apt show python3-opencv
+
+sudo apt-get install python-scipy
+pip install scipy
+
+pip install imutils
