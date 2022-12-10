@@ -1,11 +1,10 @@
 # Main loop here
-<<<<<<< HEAD
 import threading
 import CameraInput
 import RobotFunctions
 import RobotAPI
-
 import time
+
 t = None
 t1 = None
 def turnright( degrees):
@@ -27,15 +26,7 @@ def lowercrane( ):
 
 margin =50
 turnAngle= 45
-=======
 
-import time
-
-import CameraInput
-#import RobotAPI
-import RobotFunctions
-
->>>>>>> ed7e4cb90fe30933e6f6d6256138d18a821659d9
 print("Running main.py")
 
 CameraInput.testprint()
@@ -44,17 +35,15 @@ time.sleep(2)
 y = 0
 initiateCamera = True
 centerX, centerY = CameraInput.getCameraCenterCoordinate()
-<<<<<<< HEAD
-=======
-for i in CameraInput.trackFace():
-    print(i, ";", centerX, end=' ')
-    if (i[0] >= centerX):
-        print("Camera looking too far left! Must turn towards right...")
-        #RobotAPI.indicateTurnLeft()
-    else:
-        print("Camera looking too far right! Must turn towards left...")
-        #RobotAPI.indicateTurnRight()
->>>>>>> ed7e4cb90fe30933e6f6d6256138d18a821659d9
+#for i in CameraInput.trackFace():
+#    print(i, ";", centerX, end=' ')
+#    if (i[0] >= centerX):
+#        print("Camera looking too far left! Must turn towards right...")
+#        #RobotAPI.indicateTurnLeft()
+#    else:
+#        print("Camera looking too far right! Must turn towards left...")
+#        #RobotAPI.indicateTurnRight()
+
 
 for i in CameraInput.trackObject():
 
