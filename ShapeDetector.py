@@ -16,7 +16,7 @@ class ColorLabeler:
 			"yellow":(255, 255, 0),
 			"orange":(255, 165, 0),
 			"white": (255, 255, 255),
-			"white": (0, 0, 0)})
+			"black": (0, 0, 0)})
 		# allocate memory for the L*a*b* image, then initialize
 		# the color names list
 		self.lab = np.zeros((len(colors), 1, 3), dtype="uint8")
