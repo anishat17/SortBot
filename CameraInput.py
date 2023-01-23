@@ -76,19 +76,19 @@ def getCameraCenterCoordinate():
 
 #script. Test if picamera is functional or not idk what this is for
 # Instantiates pi's camera, takes a picture, and saves to below directory 
-def savePiPhoto():
-    from picamera import PiCamera
-    import time
+# def savePiPhoto():
+#     from picamera import PiCamera
+#     import time
 
-    camera = PiCamera()
-    camera.resolution = (1280,720)
-    camera.vflip = True
-    camera.contrast = 50
+#     camera = PiCamera()
+#     camera.resolution = (1280,720)
+#     camera.vflip = True
+#     camera.contrast = 50
 
-    time.sleep(2)
+#     time.sleep(2)
 
-    camera.capture("/home/pi/Pictures/img.jpg")
-    print("Done.")
+#     camera.capture("/home/pi/Pictures/img.jpg")
+#     print("Done.")
 
 
 #run a FOREVER loop. shows camera feed and draws contours around
@@ -210,28 +210,28 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
             
             # Assign centermostContour to the contour closest to X,Y center
             # Pythagorean distance
-            centermostContourDist = (cX ** 2 +
-                cY ** 2) ** 0.5
+            centermostContourDist = (cX ** 2 + cY ** 2) ** 0.5
             currentContourDist = (currCX ** 2 + currCY ** 2) ** 0.5
             if (currentContourDist < centermostContourDist):
                 centermostContour = c
                 cX = currCX
                 cY = currCY
         # Skip to next loop iteration if no contour found
-        if (centermostContour is None):
-            continue
+        if (centermostContour is not None):
+            
+            # multiply the contour (x, y)-coordinates by the resize ratio,
+            # then draw the contours and the name of the shape on the image
+            centermostContour = centermostContour.astype("float")
+            centermostContour *= ratio
+            centermostContour = centermostContour.astype("int")
+            cv2.drawContours(img, [centermostContour], -1, (0, 255, 0), 2)
+            text = "{} {}".format(color, shape)
+            cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (255, 255, 255), 2)
 
-        # multiply the contour (x, y)-coordinates by the resize ratio,
-        # then draw the contours and the name of the shape on the image
-        centermostContour = centermostContour.astype("float")
-        centermostContour *= ratio
-        centermostContour = centermostContour.astype("int")
-        cv2.drawContours(img, [centermostContour], -1, (0, 255, 0), 2)
-        text = "{} {}".format(color, shape)
-        cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-            0.5, (255, 255, 255), 2)
-
-        yield (cX),(cY) # Yield coordinate of center of box
+        # Yield coordinate of center of contour. Yields corner of img if
+        #  no target object was found.
+        yield (cX),(cY)
 
         # displaying image with bounding box
         cv2.imshow('shape_detect', img)
@@ -239,7 +239,7 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     imcap.release()
-    cv2.destroyWindow('face_detect')
+    cv2.destroyWindow('shape_detect')
 
 
 if __name__ == "__main__":
@@ -248,16 +248,18 @@ if __name__ == "__main__":
 
     print("Running CameraInput.py")
 
-    testprint()
 
     centerX, centerY = getCameraCenterCoordinate()
+    margin = int (0.1 * centerX)
     frameCounter = 0
-    for i in trackTargetShapeAndColor():
+    for i in trackTargetShapeAndColor("any", "any"):
         print(frameCounter, i, ";", centerX, end=' ')
-        if (i[0] >= centerX):
+        if (i[0] >= centerX + margin):
             print("Camera looking too far left! Must turn towards right...")
             #RobotAPI.indicateTurnLeft()
-        else:
+        elif (i[0] <= centerX - margin):
             print("Camera looking too far right! Must turn towards left...")
             #RobotAPI.indicateTurnRight()
+        else:
+            print("Centered")
         frameCounter += 1
