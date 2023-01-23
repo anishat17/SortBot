@@ -252,7 +252,7 @@ if __name__ == "__main__":
     centerX, centerY = getCameraCenterCoordinate()
     margin = int (0.1 * centerX)
     frameCounter = 0
-    for i in trackTargetShapeAndColor("any", "any"):
+    for i in trackTargetShapeAndColor("Rectangle", "any"):
         print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX + margin):
             print("Camera looking too far left! Must turn towards right...")
