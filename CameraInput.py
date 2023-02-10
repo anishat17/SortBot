@@ -93,7 +93,7 @@ def getCameraCenterCoordinate():
 
 #run a FOREVER loop. shows camera feed and draws contours around
 # shapes, and also YIELDS the x,y of the contour to caller func
-def trackShapes():
+def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
 	# load the camera and resize it to a smaller factor so that
 	# the shapes can be approximated better
     imcap = cv2.VideoCapture(0)
@@ -109,7 +109,7 @@ def trackShapes():
         blurred = cv2.GaussianBlur(resized, (5, 5), 0)
         imgGray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
         lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
-        thresh = cv2.threshold(imgGray, 120, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(imgGray, 127, 255, cv2.THRESH_BINARY)[1]
 
         # Find contours in thresholded image and init ShapeDetector
         contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -134,16 +134,25 @@ def trackShapes():
                 cY = 0
             shape = sd.detect(c)
             color = cl.label(lab, c)
+            cPeri = cv2.arcLength(c, True) # Contour Perimeter
 
             # multiply the contour (x, y)-coordinates by the resize ratio,
             # then draw the contours and the name of the shape on the image
             c = c.astype("float")
             c *= ratio
             c = c.astype("int")
+            # Change text colors based on their size. Filter the background
+            drawColor = (255, 255, 255)
+            if cPeri < minContourSize: drawColor = (150, 255, 150)
+            if cPeri > maxContourSize: drawColor = (200, 255, 255)
+            # If we are filtering by size and c is not target size, continue
+            if filterSize and drawColor != (255, 255, 255): continue
+            if color == "white": drawColor = (0, 0, 0) # Make it readable
+            
             cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
-            text = "{} {}".format(color, shape)
+            text = "{} {} {}".format(color, shape, int(cPeri))
             cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 255, 255), 2)
+                0.5, drawColor, 2)
 
             yield (cX),(cY) # Yield coordinate of center of box
         # displaying image with bounding box
@@ -186,10 +195,12 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
 
 
         centermostContour = None
-        cX = imcap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        cY = imcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        # center of image (cX, cY) coordinate
+        cX = int (imcap.get(cv2.CAP_PROP_FRAME_WIDTH) / 2)
+        cY = int (imcap.get(cv2.CAP_PROP_FRAME_HEIGHT) / 2)
         # Assign centermostContour to be the contour closest to X,Y center
         #  We will only be using ONE contour in contours
+        centermostContourDist = (cX**2 + cY**2)**0.5 #set default dist to edge
         for c in contours:
             shape = sd.detect(c)
             color = cl.label(lab, c)
@@ -210,8 +221,7 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
             
             # Assign centermostContour to the contour closest to X,Y center
             # Pythagorean distance
-            centermostContourDist = (cX ** 2 + cY ** 2) ** 0.5
-            currentContourDist = (currCX ** 2 + currCY ** 2) ** 0.5
+            currentContourDist = ((currCX-cY) ** 2 + (currCY-cY) ** 2) ** 0.5
             if (currentContourDist < centermostContourDist):
                 centermostContour = c
                 cX = currCX
@@ -252,7 +262,7 @@ if __name__ == "__main__":
     centerX, centerY = getCameraCenterCoordinate()
     margin = int (0.1 * centerX)
     frameCounter = 0
-    for i in trackTargetShapeAndColor("Rectangle", "any"):
+    for i in trackShapes():
         print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX + margin):
             print("Camera looking too far left! Must turn towards right...")
