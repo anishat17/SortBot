@@ -148,7 +148,7 @@ def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
             # If we are filtering by size and c is not target size, continue
             if filterSize and drawColor != (255, 255, 255): continue
             if color == "white": drawColor = (0, 0, 0) # Make it readable
-            
+
             cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
             text = "{} {} {}".format(color, shape, int(cPeri))
             cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
@@ -168,7 +168,8 @@ def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
 # specified shape of specified color, 
 # and also YIELDS the x,y of the contour to caller func.
 #Will ONLY report ONE object's coords - the closest one to center
-def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
+def trackTargetShapeAndColor( targetShape="any", targetColor="any",
+                    filterSize=True, minContourSize=25, maxContourSize=500):
 	# load the camera and resize it to a smaller factor so that
 	# the shapes can be approximated better
     imcap = cv2.VideoCapture(0)
@@ -202,6 +203,9 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
         #  We will only be using ONE contour in contours
         centermostContourDist = (cX**2 + cY**2)**0.5 #set default dist to edge
         for c in contours:
+            # If filtering by size, check Contour is within size threshold
+            if not (minContourSize < cv2.arcLength(c, True) < maxContourSize
+                ) and filterSize: continue
             shape = sd.detect(c)
             color = cl.label(lab, c)
             if ( not ( (shape==targetShape or targetShape=="any")
@@ -236,8 +240,10 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any" ):
             centermostContour = centermostContour.astype("int")
             cv2.drawContours(img, [centermostContour], -1, (0, 255, 0), 2)
             text = "{} {}".format(color, shape)
+            textColor = (255, 255, 255)
+            if color == "white": textColor = (0, 0, 0) # Readability tweak
             cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 255, 255), 2)
+                0.5, textColor, 2)
 
         # Yield coordinate of center of contour. Yields corner of img if
         #  no target object was found.
@@ -262,7 +268,8 @@ if __name__ == "__main__":
     centerX, centerY = getCameraCenterCoordinate()
     margin = int (0.1 * centerX)
     frameCounter = 0
-    for i in trackShapes():
+    for i in trackTargetShapeAndColor(filterSize=False,
+            minContourSize=100, maxContourSize=500):
         print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX + margin):
             print("Camera looking too far left! Must turn towards right...")
