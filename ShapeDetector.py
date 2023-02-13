@@ -4,6 +4,9 @@ import imutils # install imutils
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
+from colormath.color_objects import LabColor, sRGBColor
+from colormath.color_conversions import convert_color
+
 
 class ColorLabeler:
 	def __init__(self):
@@ -36,7 +39,7 @@ class ColorLabeler:
 		mask = np.zeros(image.shape[:2], dtype="uint8")
 		cv2.drawContours(mask, [c], -1, 255, -1)
 		mask = cv2.erode(mask, None, iterations=2)
-		mean = cv2.mean(image, mask=mask)[:3]
+		mean = cv2.mean(image, mask=mask)[:3] # Color value in cv2 L*A*B* form
 		# initialize the minimum distance found thus far
 		minDist = (np.inf, None)
 		# loop over the known L*a*b* color values
@@ -48,8 +51,15 @@ class ColorLabeler:
 			# then update the bookkeeping variable
 			if d < minDist[0]:
 				minDist = (d, i)
-		# return the name of the color with the smallest distance
-		return self.colorNames[minDist[1]]
+
+		#LAB format used by cv2 is L*2.55, a+128, b+128. We must convert to
+		# standard LAB format of L(0~100) a(-128~128) b(-128~128) before use
+		#Use colormath module to convert L*a*b* --> RGB
+		objLabClr = LabColor(mean[0]/2.55, mean[1]-128, mean[2]-128)
+		detectedRGBcolor=convert_color(objLabClr,sRGBColor).get_upscaled_value_tuple()
+
+		# return the name of the color with the smallest distance + RGB value
+		return self.colorNames[minDist[1]], detectedRGBcolor
 
 
 
@@ -123,14 +133,16 @@ if __name__ == "__main__":
 		cX = int((M["m10"] / M["m00"]) * ratio)
 		cY = int((M["m01"] / M["m00"]) * ratio)
 		shape = sd.detect(c)
-		color = cl.label(lab, c)
+		color, objRGB = cl.label(lab, c) #retrieve "color"=str, and Object's RGB
 
 		# multiply the contour (x, y)-coordinates by the resize ratio,
 		# then draw the contours and the name of the shape on the image
 		c = c.astype("float")
 		c *= ratio
 		c = c.astype("int")
+		# build text label of detected contours
 		text = "{} {}".format(color, shape)
+		for colorValue in objRGB: text += " " + str(int(colorValue))
 		cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
 		cv2.putText(image, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
 			0.5, (255, 255, 255), 2)
