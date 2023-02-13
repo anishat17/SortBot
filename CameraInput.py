@@ -3,6 +3,7 @@
 import cv2
 import imutils
 import ShapeDetector
+from HSVClassifier import HSVClassifier
 
 def testprint():
     print("Calling testprint() from CameraInput.py")
@@ -263,6 +264,35 @@ def trackTargetShapeAndColor( targetShape="any", targetColor="any",
     cv2.destroyWindow('shape_detect')
 
 
+def trackShapesByHSV(still_image=False, verbose=False):
+	# load the camera and resize it to a smaller factor so that
+	# the shapes can be approximated better
+    imcap = cv2.VideoCapture(0)
+    imcap.set(3, 640) # Set field 3 (width) to 640
+    imcap.set(4, 480) # Set field 4 (Height) 480
+    
+    # Initialize HSVClassifier
+    hsvClassifier = HSVClassifier()
+
+    while True:
+        success, img = imcap.read() # capture frame from video
+         # Find objects by color, label on img
+        img = hsvClassifier.label(img, still_image=still_image, verbose=verbose)
+
+        #TODO: yield coords
+        # Yield coordinate of center of contour. Yields corner of img if
+        #  no target object was found.
+        # yield (cX),(cY)
+
+        # displaying image with bounding box
+        cv2.imshow('shape_detect', img)
+        # loop will be broken when 'q' is pressed on the keyboard
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
+    imcap.release()
+    cv2.destroyWindow('shape_detect')
+
+
 if __name__ == "__main__":
     import time
     import RobotFunctions
@@ -275,14 +305,15 @@ if __name__ == "__main__":
     frameCounter = 0
     # for i in trackTargetShapeAndColor(filterSize=False,
     #         minContourSize=100, maxContourSize=500):
-    for i in trackShapes(showRGBValue=True):
-        print(frameCounter, i, ";", centerX, end=' ')
-        if (i[0] >= centerX + margin):
-            print("Camera looking too far left! Must turn towards right...")
-            #RobotAPI.indicateTurnLeft()
-        elif (i[0] <= centerX - margin):
-            print("Camera looking too far right! Must turn towards left...")
-            #RobotAPI.indicateTurnRight()
-        else:
-            print("Centered")
-        frameCounter += 1
+    # for i in trackShapes(showRGBValue=True):
+    #     print(frameCounter, i, ";", centerX, end=' ')
+    #     if (i[0] >= centerX + margin):
+    #         print("Camera looking too far left! Must turn towards right...")
+    #         #RobotAPI.indicateTurnLeft()
+    #     elif (i[0] <= centerX - margin):
+    #         print("Camera looking too far right! Must turn towards left...")
+    #         #RobotAPI.indicateTurnRight()
+    #     else:
+    #         print("Centered")
+    #     frameCounter += 1
+    trackShapesByHSV(still_image=True, verbose=True)
