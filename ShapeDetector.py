@@ -4,8 +4,6 @@ import imutils # install imutils
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
-from colormath.color_objects import LabColor, sRGBColor
-from colormath.color_conversions import convert_color
 
 
 class ColorLabeler:
@@ -52,14 +50,13 @@ class ColorLabeler:
 			if d < minDist[0]:
 				minDist = (d, i)
 
-		#LAB format used by cv2 is L*2.55, a+128, b+128. We must convert to
-		# standard LAB format of L(0~100) a(-128~128) b(-128~128) before use
-		#Use colormath module to convert L*a*b* --> RGB
-		objLabClr = LabColor(mean[0]/2.55, mean[1]-128, mean[2]-128)
-		detectedRGBcolor=convert_color(objLabClr,sRGBColor).get_upscaled_value_tuple()
+		# Retrieve color value from contour and reformat it L*a*b-->RGB form
+		retRGB = np.zeros((1, 1, 3), dtype="uint8")
+		retRGB[0] = mean
+		retRGB = cv2.cvtColor(retRGB, cv2.COLOR_LAB2RGB)
 
 		# return the name of the color with the smallest distance + RGB value
-		return self.colorNames[minDist[1]], detectedRGBcolor
+		return self.colorNames[minDist[1]], retRGB[0][0]
 
 
 
