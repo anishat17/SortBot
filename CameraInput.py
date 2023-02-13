@@ -93,7 +93,8 @@ def getCameraCenterCoordinate():
 
 #run a FOREVER loop. shows camera feed and draws contours around
 # shapes, and also YIELDS the x,y of the contour to caller func
-def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
+def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500,
+                showPerimeterValue=False, showRGBValue=False):
 	# load the camera and resize it to a smaller factor so that
 	# the shapes can be approximated better
     imcap = cv2.VideoCapture(0)
@@ -133,7 +134,7 @@ def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
                 cX = 0
                 cY = 0
             shape = sd.detect(c)
-            color = cl.label(lab, c)
+            color, rgb = cl.label(lab, c)
             cPeri = cv2.arcLength(c, True) # Contour Perimeter
 
             # multiply the contour (x, y)-coordinates by the resize ratio,
@@ -150,7 +151,11 @@ def trackShapes(filterSize=True, minContourSize=50, maxContourSize=500):
             if color == "white": drawColor = (0, 0, 0) # Make it readable
 
             cv2.drawContours(img, [c], -1, (0, 255, 0), 2)
-            text = "{} {} {}".format(color, shape, int(cPeri))
+            text = "{} {}".format(color, shape)
+            if showPerimeterValue: text += ", " + str(int(cPeri))
+            if showRGBValue:
+                text += " "
+                for colorValue in rgb: text += str(int(colorValue)) + " "
             cv2.putText(img, text, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, drawColor, 2)
 
@@ -268,8 +273,9 @@ if __name__ == "__main__":
     centerX, centerY = getCameraCenterCoordinate()
     margin = int (0.1 * centerX)
     frameCounter = 0
-    for i in trackTargetShapeAndColor(filterSize=False,
-            minContourSize=100, maxContourSize=500):
+    # for i in trackTargetShapeAndColor(filterSize=False,
+    #         minContourSize=100, maxContourSize=500):
+    for i in trackShapes(showRGBValue=True):
         print(frameCounter, i, ";", centerX, end=' ')
         if (i[0] >= centerX + margin):
             print("Camera looking too far left! Must turn towards right...")
