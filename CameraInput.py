@@ -293,6 +293,25 @@ def trackShapesByHSV(still_image=False, verbose=False):
     cv2.destroyWindow('shape_detect')
 
 
+# Simple function for MainThreaded.py
+# Return a generator object to constantly give IMG objects 
+#  to enqueue and later analyze in another thread
+def frameGenerator():
+    imcap = cv2.VideoCapture(0) # create video source
+    imcap.set(3, 640) # Set field 3 (width) to 640
+    imcap.set(4, 480) # Set field 4 (Height) 480
+
+    while True:
+        success, img = imcap.read() # capture frame from video    
+        # loop will be broken when 'q' is pressed on the keyboard
+        # if cv2.waitKey(10) & 0xFF == ord('q'):
+        #     break
+        yield img
+    imcap.release()
+
+        
+
+
 if __name__ == "__main__":
     import time
     import RobotFunctions
